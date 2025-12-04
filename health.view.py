@@ -1,93 +1,74 @@
 import streamlit as st
-import matplotlib.pyplot as plt
 import pandas as pd
-import numpy as np
+import matplotlib.pyplot as plt
 
-# 🔥 Streamlit Cloud(리눅스) 한글 깨짐 완전 해결
-plt.rcParams['font.family'] = 'DejaVu Sans'   # 리눅스 기본 한글 지원 폰트
-plt.rcParams['axes.unicode_minus'] = False    # 마이너스 깨짐 방지
+# ===== 한글 깨짐 방지 =====
+plt.rcParams["font.family"] = "Malgun Gothic"
+plt.rcParams["axes.unicode_minus"] = False
 
-# ------------------ 건강수명 계산 ------------------
-def calculate_health_life(exercise_hours):
-    if exercise_hours < 0:
-        return "오류: 운동시간은 0 이상이어야 합니다!"
-    elif exercise_hours < 1:
-        health_life = 63 + (exercise_hours * 2)
-    elif exercise_hours < 2:
-        health_life = 65 + ((exercise_hours - 1) * 2)
-    elif exercise_hours < 3:
-        health_life = 67 + ((exercise_hours - 2) * 3)
-    elif exercise_hours < 4:
-        health_life = 70 + ((exercise_hours - 3) * 2)
-    else:
-        health_life = 72 + ((exercise_hours - 4) * 0.5)
+# ===== 앱 제목 =====
+st.title("건강 상태 분석 도구 (Health Pattern Visualizer)")
 
-    if health_life > 75:
-        health_life = 75
-    return round(health_life, 1)
+# ===== 입력부 =====
+st.header("1. 주관적 컨디션 입력")
 
-# ------------------ 등급 계산 ------------------
-def get_health_grade(health_life):
-    if health_life >= 73:
-        return "우수"
-    elif health_life >= 70:
-        return "양호"
-    elif health_life >= 67:
-        return "보통"
-    else:
-        return "주의"
+condition = st.slider(
+    "오늘의 컨디션(0~10)", 
+    min_value=0, 
+    max_value=10, 
+    value=5
+)
 
-# ------------------ Streamlit UI ------------------
-st.title("🏃‍♂️ 주당 운동시간 건강수명 예측기")
-st.markdown("---")
+sleep_hours = st.number_input("수면 시간(시간)", min_value=0.0, max_value=24.0, value=7.0)
 
-col1, col2 = st.columns(2)
-with col1:
-    exercise_hours = st.slider("주당 운동시간 (시간)", 0.0, 10.0, 2.0, 0.1)
-with col2:
-    st.info("📊 한국 평균: 약 2.5시간")
+water = st.number_input("물 섭취량(ml)", min_value=0, max_value=5000, value=1500)
 
-# ------------------ 버튼 클릭 시 분석 ------------------
-if st.button("🔍 건강수명 분석하기", type="primary"):
-    health_life = calculate_health_life(exercise_hours)
+stress = st.selectbox("스트레스 수준", ["낮음", "보통", "높음"])
 
-    if isinstance(health_life, str):
-        st.error(f"❌ {health_life}")
-    else:
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("예상 건강수명", f"{health_life}세")
-        with col2:
-            grade = get_health_grade(health_life)
-            st.metric("건강 등급", grade)
+st.write("---")
 
-        # 조언
-        if exercise_hours < 2:
-            st.warning("💬 운동시간 부족! 주 2시간 이상! (건강수명 증가 효과 큼)")
-        elif exercise_hours < 4:
-            st.success("💬 적절한 운동량! 꾸준히 유지하세요.")
-        else:
-            st.balloons()
-            st.success("🎉 훌륭한 운동량! 과도한 운동은 효과가 줄어듭니다.")
+# ===== 분석 =====
+st.header("2. 분석 결과")
 
-        # ------------------ 그래프 ------------------
-        fig, ax = plt.subplots(figsize=(10, 6))
-        hours = np.linspace(0, 6, 200)
-        healths = [calculate_health_life(h) for h in hours]
+# 간단 점수 모델
+score = (
+    condition * 0.4 +
+    (sleep_hours / 8) * 20 +
+    (water / 2000) * 20 -
+    (10 if stress == "높음" else 0)
+)
 
-        ax.plot(hours, healths, linewidth=2, label='건강수명 변화')
-        ax.axvline(exercise_hours, color='red', linestyle='--', label=f'당신의 운동시간 ({exercise_hours}시간)')
-        ax.set_xlabel("주당 운동시간(시간)")
-        ax.set_ylabel("예상 건강수명(세)")
-        ax.set_title("운동시간에 따른 건강수명 변화")
-        ax.legend()
-        ax.grid(True, alpha=0.3)
+st.subheader(f"✔ 건강 점수: {score:.1f} / 100")
 
-        st.pyplot(fig)
-
-# ------------------ 실제 데이터 ------------------
-st.markdown("### 📈 한국 소득별 운동시간·건강수명 데이터")
+# ===== 그래프 =====
+st.header("3. 비교 그래프")
 
 real_data = pd.DataFrame({
-    '소득분위': ['1분위(저)', '3분위(중)', '5분위(고)'],
-    '평균운동시간': [1.8, 2.5, 3.2],
+    "항목": ["컨디션", "수면", "수분", "스트레스"],
+    "점수": [
+        condition * 4,
+        (sleep_hours / 8) * 100,
+        (water / 2000) * 100,
+        30 if stress == "높음" else (70 if stress == "보통" else 100)
+    ]
+})
+
+fig, ax = plt.subplots()
+ax.bar(real_data["항목"], real_data["점수"])
+ax.set_ylim(0, 120)
+ax.set_ylabel("점수(0~100)")
+
+st.pyplot(fig)
+
+st.write("---")
+
+# ===== 조언 =====
+st.header("4. 맞춤 조언")
+
+if score >= 80:
+    st.success("전반적으로 매우 좋습니다. 현재 패턴을 유지하세요.")
+elif 50 <= score < 80:
+    st.info("전체적으로 무난하지만, 수면과 수분 섭취를 조금 더 관리해보세요.")
+else:
+    st.warning("컨디션이 낮습니다. 수면 확보 및 스트레스 관리가 필요합니다.")
+
