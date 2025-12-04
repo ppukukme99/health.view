@@ -3,10 +3,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-# 한글 폰트 깨짐 해결
-plt.rcParams['font.family'] = 'Malgun Gothic'  # Windows
-plt.rcParams['axes.unicode_minus'] = False     # 마이너스 깨짐 방지
+# 🔥 Streamlit Cloud(리눅스) 한글 깨짐 완전 해결
+plt.rcParams['font.family'] = 'DejaVu Sans'   # 리눅스 기본 한글 지원 폰트
+plt.rcParams['axes.unicode_minus'] = False    # 마이너스 깨짐 방지
 
+# ------------------ 건강수명 계산 ------------------
 def calculate_health_life(exercise_hours):
     if exercise_hours < 0:
         return "오류: 운동시간은 0 이상이어야 합니다!"
@@ -20,10 +21,12 @@ def calculate_health_life(exercise_hours):
         health_life = 70 + ((exercise_hours - 3) * 2)
     else:
         health_life = 72 + ((exercise_hours - 4) * 0.5)
+
     if health_life > 75:
         health_life = 75
     return round(health_life, 1)
 
+# ------------------ 등급 계산 ------------------
 def get_health_grade(health_life):
     if health_life >= 73:
         return "우수"
@@ -34,6 +37,7 @@ def get_health_grade(health_life):
     else:
         return "주의"
 
+# ------------------ Streamlit UI ------------------
 st.title("🏃‍♂️ 주당 운동시간 건강수명 예측기")
 st.markdown("---")
 
@@ -43,9 +47,10 @@ with col1:
 with col2:
     st.info("📊 한국 평균: 약 2.5시간")
 
+# ------------------ 버튼 클릭 시 분석 ------------------
 if st.button("🔍 건강수명 분석하기", type="primary"):
     health_life = calculate_health_life(exercise_hours)
-    
+
     if isinstance(health_life, str):
         st.error(f"❌ {health_life}")
     else:
@@ -55,34 +60,34 @@ if st.button("🔍 건강수명 분석하기", type="primary"):
         with col2:
             grade = get_health_grade(health_life)
             st.metric("건강 등급", grade)
-        
+
+        # 조언
         if exercise_hours < 2:
-            st.warning("💬 운동시간 부족! 주 2시간 이상!")
+            st.warning("💬 운동시간 부족! 주 2시간 이상! (건강수명 증가 효과 큼)")
         elif exercise_hours < 4:
-            st.success("💬 적절한 운동량!")
+            st.success("💬 적절한 운동량! 꾸준히 유지하세요.")
         else:
             st.balloons()
-            st.success("🎉 우수한 운동량!")
-        
-        # 그래프 (한글 완벽 지원)
+            st.success("🎉 훌륭한 운동량! 과도한 운동은 효과가 줄어듭니다.")
+
+        # ------------------ 그래프 ------------------
         fig, ax = plt.subplots(figsize=(10, 6))
-        hours = np.linspace(0, 6, 100)
+        hours = np.linspace(0, 6, 200)
         healths = [calculate_health_life(h) for h in hours]
-        ax.plot(hours, healths, 'b-', linewidth=2, label='건강수명 곡선')
-        ax.axvline(exercise_hours, color='red', linestyle='--', label=f'당신: {exercise_hours}시간')
-        ax.set_xlabel('주당 운동시간')
-        ax.set_ylabel('건강수명 (세)')
-        ax.set_title('운동시간 vs 건강수명')
+
+        ax.plot(hours, healths, linewidth=2, label='건강수명 변화')
+        ax.axvline(exercise_hours, color='red', linestyle='--', label=f'당신의 운동시간 ({exercise_hours}시간)')
+        ax.set_xlabel("주당 운동시간(시간)")
+        ax.set_ylabel("예상 건강수명(세)")
+        ax.set_title("운동시간에 따른 건강수명 변화")
         ax.legend()
         ax.grid(True, alpha=0.3)
+
         st.pyplot(fig)
 
-st.markdown("### 📈 한국 소득별 실제 데이터")
+# ------------------ 실제 데이터 ------------------
+st.markdown("### 📈 한국 소득별 운동시간·건강수명 데이터")
+
 real_data = pd.DataFrame({
     '소득분위': ['1분위(저)', '3분위(중)', '5분위(고)'],
     '평균운동시간': [1.8, 2.5, 3.2],
-    '건강수명': [72.1, 73.5, 75.2]
-})
-st.dataframe(real_data)
-
-st.caption("✅ 한글 완벽 지원!")
