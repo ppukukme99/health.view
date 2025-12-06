@@ -47,11 +47,11 @@ st.markdown("---")
 # 입력 영역
 col1, col2 = st.columns(2)
 with col1:
-    exercise_hours = st.slider("주당 운동시간 (시간)", 0.0, 10.0, 2.0, 0.1)
+    exercise_hours = st.slider("주당 운동시간 (시간) 선택하세요", 0.0, 10.0, 2.0, 0.1)
 with col2:
     st.info("📊 한국 평균: 약 2.5시간")
 
-if st.button("🔍 건강수명 분석하기", type="primary"):
+if st.button("🔍 클릭 ! 건강수명 분석하기", type="primary"):
     health_life = calculate_health_life(exercise_hours)
 
     if isinstance(health_life, str):
@@ -96,5 +96,6 @@ real_data = pd.DataFrame({
 st.dataframe(real_data)
 
 # st.caption("✅ 한글 폰트 정상 표시 및 Streamlit + matplotlib 연동 완료")
+
 
 
