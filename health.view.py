@@ -41,7 +41,7 @@ def get_health_grade(health_life):
         return "주의"
 
 # -------------------- Streamlit 인터페이스 --------------------
-st.title("🏃‍♂️ 주당 운동시간 건강수명 예측기")
+st.title("🏃‍♂️ 주당 운동시간 건강수명 예측기by 박승리")
 st.markdown("---")
 
 # 입력 영역
@@ -96,3 +96,4 @@ real_data = pd.DataFrame({
 st.dataframe(real_data)
 
 st.caption("✅ 한글 폰트 정상 표시 및 Streamlit + matplotlib 연동 완료")
+
